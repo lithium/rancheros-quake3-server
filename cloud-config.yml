@@ -1,8 +1,12 @@
 #cloud-config
 rancher:
 runcmd:
+  - wget http://game.pioneernet.ru/dl/q3/files/pk3/pak0.pk3 -O /home/rancher/pak0.pk3
   - wget https://github.com/lithium/quake3-slugfest/archive/master.zip -O /home/rancher/slugfest.zip
   - unzip /home/rancher/slugfest.zip -d /home/rancher
+  - wget https://github.com/lithium/rancheros-quake3-server/archive/master.zip -O /home/rancher/data.zip
+  - unzip /home/rancher/data.zip -d /home/rancher
+  - ln -s /home/rancher/rancheros-quake3-server-master/maps /home/rancher/maps
 write_files:
   - path: /home/rancher/start-all
     permissions: "0755"
@@ -17,15 +21,17 @@ write_files:
     content: |
       #!/bin/bash
       docker run --name quake3 -d -p 0.0.0.0:27960:27960/udp \
-      -v /home/rancher/quake3/baseq3/pak0.pk3:/pak0.pk3 \
-      jberrenberg/quake3 +rconpassword rueB1ks +map q3dm17
+      -v /home/rancher/pak0.pk3:/pak0.pk3 \
+      -v /home/rancher/maps/map-charonq2dm1v2.pk3:/home/ioq3srv/.q3a/baseq3/charonq2dm1v2.pk3 \
+      jberrenberg/quake3 +rconpassword rueB1ks +map charonq2dm1v2
   - path: /home/rancher/start-slugfest
     permissions: "0755"
     owner: rancher
     content: |
       #!/bin/bash
       docker run --name slugfest -d -p 0.0.0.0:42000:27960/udp \
-      -v /home/rancher/quake3/baseq3/pak0.pk3:/pak0.pk3 \
+      -v /home/rancher/pak0.pk3:/pak0.pk3 \
+      -v /home/rancher/maps/map-charonq2dm1v2.pk3:/home/ioq3srv/.q3a/baseq3/charonq2dm1.pk3 \
       -v /home/rancher/quake3-slugfest-master:/home/ioq3srv/.q3a/slugfest \
       jberrenberg/quake3 +rconpassword rueB1ks +map q3dm17 +set fs_game slugfest
   - path: /etc/rc.local
